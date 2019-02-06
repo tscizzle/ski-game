@@ -1,12 +1,15 @@
 import _ from 'lodash';
 import Phaser from 'phaser';
 
-const gameOptions = {};
-const gameObjects = {};
-
-class PlayGame extends Phaser.Scene {
+class SkiSlope extends Phaser.Scene {
   constructor() {
-    super('PlayGame');
+    super('SkiSlope');
+    this.distanceMarker0 = null;
+    this.distanceMarker1 = null;
+    this.skiPlayer = null;
+    this.skiCursors = null;
+    this.slopeSteepness = Math.PI / 6; // angle with ground
+    this.slopeDirection = 0; // angle rotated clockwise from forward
   }
 
   preload() {
@@ -14,14 +17,53 @@ class PlayGame extends Phaser.Scene {
   }
 
   create() {
+    // SPRITES
+    this.distanceMarker0 = this.add.text(100, 400, '0', {
+      fontSize: '32px',
+      fill: '#000',
+    });
+    this.distanceMarker1 = this.add.text(100, -100, '500', {
+      fontSize: '32px',
+      fill: '#000',
+    });
+    this.skiPlayer = this.physics.add.sprite(0, 0, 'skis');
+
+    // CAMERA
+    this.cameras.main.setBackgroundColor(0xddeeff);
+    this.cameras.main.startFollow(this.skiPlayer);
+
+    // CONTROLS
+    this.skiTurningCursors = this.input.keyboard.createCursorKeys();
+
     console.log('this', this);
-    gameObjects.camera = _.first(this.cameras.cameras);
-    console.log(gameObjects.camera);
-    gameObjects.camera.setBackgroundColor(0xddeeff);
-    this.skis = this.add.sprite(100, 100, 'skis');
   }
 
-  update() {}
+  update() {
+    // CONTROL ROTATION
+    if (this.skiTurningCursors.left.isDown) {
+      this.skiPlayer.rotation -= Math.PI / 100;
+    } else if (this.skiTurningCursors.right.isDown) {
+      this.skiPlayer.rotation += Math.PI / 100;
+    }
+
+    // CONTROL MOVEMENT (TODO let the slope do this, but for testing rn do with arrow keys)
+    if (this.skiTurningCursors.up.isDown) {
+      this.skiPlayer.x += Math.sin(this.skiPlayer.rotation) * 2;
+      this.skiPlayer.y -= Math.cos(this.skiPlayer.rotation) * 2;
+    } else if (this.skiTurningCursors.down.isDown) {
+      this.skiPlayer.x -= Math.sin(this.skiPlayer.rotation) * 2;
+      this.skiPlayer.y += Math.cos(this.skiPlayer.rotation) * 2;
+    }
+
+    // PLACE DISTANCE MARKER
+    const skiPlayerProgress = -this.skiPlayer.y;
+    const closest500Below = Math.floor(skiPlayerProgress / 500) * 500;
+    const closest500Above = Math.ceil(skiPlayerProgress / 500) * 500;
+    this.distanceMarker0.y = -closest500Below;
+    this.distanceMarker0.setText(String(closest500Below));
+    this.distanceMarker1.y = -closest500Above;
+    this.distanceMarker1.setText(String(closest500Above));
+  }
 
   /* HELPERS */
 
@@ -32,10 +74,13 @@ class PlayGame extends Phaser.Scene {
 
 export const initializeGame = () => {
   const gameConfig = {
-    type: Phaser.CANVAS,
+    type: Phaser.AUTO,
     width: 800,
     height: 800,
-    scene: [PlayGame],
+    scene: [SkiSlope],
+    physics: {
+      default: 'arcade',
+    },
   };
   const game = new Phaser.Game(gameConfig);
   return game;
