@@ -40,6 +40,8 @@ class SkiSlope extends Phaser.Scene {
       blendMode: 'ADD',
       on: false,
     });
+    this.previousAngularVelocity = 0;
+    this.previousDirection = null;
 
     // CAMERA
     this.cameras.main.setBackgroundColor(0xdddddd);
@@ -56,17 +58,28 @@ class SkiSlope extends Phaser.Scene {
     const maxAngularVelocity = Math.PI / 100;
     const angularAcceleration = Math.PI / 2000;
     const currentAngularVelocity = _.min([
-      (this.previousAngularVelocity || 0) + angularAcceleration,
+      this.previousAngularVelocity + angularAcceleration,
       maxAngularVelocity,
     ]);
     if (this.skiTurningCursors.left.isDown) {
-      this.skiPlayer.rotation -= currentAngularVelocity;
-      this.previousAngularVelocity = currentAngularVelocity;
+      if (this.previousDirection !== 'right') {
+        this.skiPlayer.rotation -= currentAngularVelocity;
+        this.previousAngularVelocity = currentAngularVelocity;
+      } else {
+        this.previousAngularVelocity = 0;
+      }
+      this.previousDirection = 'left';
     } else if (this.skiTurningCursors.right.isDown) {
-      this.skiPlayer.rotation += currentAngularVelocity;
-      this.previousAngularVelocity = currentAngularVelocity;
+      if (this.previousDirection !== 'left') {
+        this.skiPlayer.rotation += currentAngularVelocity;
+        this.previousAngularVelocity = currentAngularVelocity;
+      } else {
+        this.previousAngularVelocity = 0;
+      }
+      this.previousDirection = 'right';
     } else {
       this.previousAngularVelocity = 0;
+      this.previousDirection = null;
     }
 
     // ACCELERATE DUE TO GRAVITY
