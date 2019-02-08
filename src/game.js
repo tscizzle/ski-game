@@ -4,19 +4,16 @@ import Phaser from 'phaser';
 class SkiSlope extends Phaser.Scene {
   constructor() {
     super('SkiSlope');
-    this.refGraphics = null;
-    this.refLines = null;
-    this.refArrows = null;
-    this.skiPlayer = null;
-    this.edgeSnowParticles = null;
-    this.edgeSnowEmitter = null;
-    this.skiCursors = null;
     this.slopeSteepness = Math.PI / 6; // angle with ground
     this.slopeDirection = 0; // angle rotated clockwise from forward
     this.gravityAccelerationConstant = 500;
   }
 
   preload() {
+    this.load.image(
+      'arrows',
+      this.publicURL('gameAssets/images/racingArrows.png')
+    );
     this.load.image('skis', this.publicURL('gameAssets/images/skis.png'));
     this.load.image(
       'snowParticle',
@@ -26,29 +23,26 @@ class SkiSlope extends Phaser.Scene {
 
   create() {
     // VISUAL OBJECTS
-    this.refGraphics = this.add.graphics({
-      lineStyle: { color: 0x999999, width: 1 },
-    });
-    this.refLines = {
-      top: new Phaser.Geom.Line(-100000, 500, 100000, 500),
-      right: new Phaser.Geom.Line(500, -100000, 500, 100000),
-      bottom: new Phaser.Geom.Line(-100000, 0, 100000, 0),
-      left: new Phaser.Geom.Line(0, -100000, 0, 100000),
-    };
-    _.each(this.refLines, line => this.refGraphics.strokeLineShape(line));
-    this.skiPlayer = this.physics.add.sprite(0, 0, 'skis');
+    this.refArrows = [
+      this.add.sprite(0, 0, 'arrows'),
+      this.add.sprite(0, 500, 'arrows'),
+      this.add.sprite(500, 0, 'arrows'),
+      this.add.sprite(500, 500, 'arrows'),
+    ];
+    _.each(this.refArrows, arrow => arrow.setScale(0.75));
+    this.skiPlayer = this.physics.add.sprite(250, 250, 'skis');
+    this.skiPlayer.setScale(0.25);
     this.edgeSnowParticles = this.add.particles('snowParticle');
     this.edgeSnowEmitter = this.edgeSnowParticles.createEmitter({
       alpha: 0.9,
       speed: 50,
       lifespan: 200,
-      scale: { start: 0.1, end: 0 },
       blendMode: 'ADD',
       on: false,
     });
 
     // CAMERA
-    this.cameras.main.setBackgroundColor(0xdefefe);
+    this.cameras.main.setBackgroundColor(0xdddddd);
     this.cameras.main.startFollow(this.skiPlayer);
 
     // CONTROLS
@@ -59,10 +53,20 @@ class SkiSlope extends Phaser.Scene {
 
   update() {
     // CONTROL ROTATION
+    const maxAngularVelocity = Math.PI / 100;
+    const angularAcceleration = Math.PI / 2000;
+    const currentAngularVelocity = _.min([
+      (this.previousAngularVelocity || 0) + Math.PI / 2000,
+      maxAngularVelocity,
+    ]);
     if (this.skiTurningCursors.left.isDown) {
-      this.skiPlayer.rotation -= Math.PI / 60;
+      this.skiPlayer.rotation -= currentAngularVelocity;
+      this.previousAngularVelocity = currentAngularVelocity;
     } else if (this.skiTurningCursors.right.isDown) {
-      this.skiPlayer.rotation += Math.PI / 60;
+      this.skiPlayer.rotation += currentAngularVelocity;
+      this.previousAngularVelocity = currentAngularVelocity;
+    } else {
+      this.previousAngularVelocity = 0;
     }
 
     // ACCELERATE DUE TO GRAVITY
@@ -115,24 +119,22 @@ class SkiSlope extends Phaser.Scene {
     };
     this.skiPlayer.body.setAcceleration(acceleration.x, acceleration.y);
 
-    // DRAW REFERENCE LINES
-    const closest500Below = Math.floor(this.skiPlayer.y / 500) * 500;
-    const closest500Left = Math.floor(this.skiPlayer.x / 500) * 500;
-    const { top, right, bottom, left } = this.refLines;
-    let needStroke = false;
-    if (bottom.y1 !== closest500Below) {
-      const closest500Above = closest500Below + 500;
-      top.setTo(-100000, closest500Above, 100000, closest500Above);
-      bottom.setTo(-100000, closest500Below, 100000, closest500Below);
-      needStroke = true;
-    }
-    if (left.x1 !== closest500Left) {
-      right.setTo(closest500Left + 500, -100000, closest500Left + 500, 100000);
-      left.setTo(closest500Left, -100000, closest500Left, 100000);
-      needStroke = true;
-    }
-    if (needStroke) {
-      _.each(this.refLines, line => this.refGraphics.strokeLineShape(line));
+    // DRAW REFERENCE OBJECTS
+    const refDistance = 500;
+    const closestBelow =
+      Math.floor(this.skiPlayer.y / refDistance) * refDistance;
+    const closestLeft =
+      Math.floor(this.skiPlayer.x / refDistance) * refDistance;
+    const needNewRefs =
+      this.refArrows[0].x !== closestLeft ||
+      this.refArrows[0].y !== closestBelow;
+    if (needNewRefs) {
+      const closestRight = closestLeft + refDistance;
+      const closestAbove = closestBelow + refDistance;
+      this.refArrows[0].setPosition(closestLeft, closestBelow);
+      this.refArrows[1].setPosition(closestLeft, closestAbove);
+      this.refArrows[2].setPosition(closestRight, closestBelow);
+      this.refArrows[3].setPosition(closestRight, closestAbove);
     }
 
     // EMIT SNOW PARTICLES
@@ -163,19 +165,23 @@ class SkiSlope extends Phaser.Scene {
         type: 'random',
       });
       const roundedScrapeStrength = Math.floor(scrapeStrength / 200) * 200;
-      const maxEmitterFrequency = 50;
-      const minEmitterScale = 0.1;
-      const maxEmitterScale = 0.2;
+      const ceilingScrapeStrength = 1000;
+      const slowestEmitterFrequency = 50;
+      const fastestEmitterFrequency = 0;
+      const maxEmitterScale = 0.4;
+      const minEmitterScale = 0.05;
       let newEmitterFrequency;
       let newEmitterScale;
-      if (roundedScrapeStrength >= 1000) {
-        newEmitterFrequency = 0;
+      if (roundedScrapeStrength >= ceilingScrapeStrength) {
+        newEmitterFrequency = fastestEmitterFrequency;
         newEmitterScale = maxEmitterScale;
       } else {
         newEmitterFrequency =
-          maxEmitterFrequency * (1 - roundedScrapeStrength / 1000);
+          slowestEmitterFrequency *
+          (1 - roundedScrapeStrength / ceilingScrapeStrength);
         newEmitterScale =
-          (maxEmitterScale - minEmitterScale) * (roundedScrapeStrength / 1000) +
+          (maxEmitterScale - minEmitterScale) *
+            (roundedScrapeStrength / ceilingScrapeStrength) +
           minEmitterScale;
       }
       if (newEmitterFrequency !== this.edgeSnowEmitter.frequency) {
@@ -183,6 +189,10 @@ class SkiSlope extends Phaser.Scene {
         this.edgeSnowEmitter.setScale({ start: newEmitterScale, end: 0 });
       }
     }
+  }
+
+  render() {
+    this.debug.spriteInfo(this.skiPlayer);
   }
 
   /* HELPERS */
