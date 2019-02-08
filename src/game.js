@@ -56,7 +56,7 @@ class SkiSlope extends Phaser.Scene {
     const maxAngularVelocity = Math.PI / 100;
     const angularAcceleration = Math.PI / 2000;
     const currentAngularVelocity = _.min([
-      (this.previousAngularVelocity || 0) + Math.PI / 2000,
+      (this.previousAngularVelocity || 0) + angularAcceleration,
       maxAngularVelocity,
     ]);
     if (this.skiTurningCursors.left.isDown) {
