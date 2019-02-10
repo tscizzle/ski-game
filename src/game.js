@@ -34,9 +34,8 @@ class SkiSlope extends Phaser.Scene {
     this.skiPlayer.setScale(0.25);
     this.edgeSnowParticles = this.add.particles('snowParticle');
     this.edgeSnowEmitter = this.edgeSnowParticles.createEmitter({
-      alpha: 0.9,
-      speed: 50,
-      lifespan: 200,
+      radial: false,
+      lifespan: 500,
       blendMode: 'ADD',
       on: false,
     });
@@ -118,11 +117,12 @@ class SkiSlope extends Phaser.Scene {
     const turnFactor = Math.cos(velocityAngle - skisPerpendicularAngle);
     // turn factor scales the velocity to get the (negative) acceleration in the
     // direction perpendicular to the skis
-    const perpendicularAcceleration = -this.skiPlayer.body.speed * turnFactor;
+    const skisPerpendicularSpeed = this.skiPlayer.body.speed * turnFactor;
+    const skisPerpendicularAcceleration = -skisPerpendicularSpeed;
     // split this acceleration into its x-y components
     const accelerationDueToEdging = {
-      x: Math.sin(skisPerpendicularAngle) * perpendicularAcceleration,
-      y: -Math.cos(skisPerpendicularAngle) * perpendicularAcceleration,
+      x: Math.sin(skisPerpendicularAngle) * skisPerpendicularAcceleration,
+      y: -Math.cos(skisPerpendicularAngle) * skisPerpendicularAcceleration,
     };
 
     // APPLY NET ACCELERATION
@@ -151,7 +151,8 @@ class SkiSlope extends Phaser.Scene {
     }
 
     // EMIT SNOW PARTICLES
-    const scrapeStrength = Math.abs(perpendicularAcceleration);
+    const snowEmissionSpeed = skisPerpendicularSpeed;
+    const scrapeStrength = Math.abs(skisPerpendicularAcceleration);
     const isScraping = scrapeStrength >= 100;
     const isEmitterOn = this.edgeSnowEmitter.on;
     if (isEmitterOn && !isScraping) {
@@ -177,11 +178,13 @@ class SkiSlope extends Phaser.Scene {
         source: scrapingLine,
         type: 'random',
       });
+      this.edgeSnowEmitter.setSpeed(snowEmissionSpeed);
+      this.edgeSnowEmitter.setAngle(-90);
       const roundedScrapeStrength = Math.floor(scrapeStrength / 200) * 200;
       const ceilingScrapeStrength = 1000;
       const slowestEmitterFrequency = 50;
       const fastestEmitterFrequency = 0;
-      const maxEmitterScale = 0.4;
+      const maxEmitterScale = 0.25;
       const minEmitterScale = 0.05;
       let newEmitterFrequency;
       let newEmitterScale;
@@ -204,19 +207,13 @@ class SkiSlope extends Phaser.Scene {
     }
   }
 
-  render() {
-    this.debug.spriteInfo(this.skiPlayer);
-  }
-
   /* HELPERS */
 
-  publicURL(path) {
-    return `${process.env.PUBLIC_URL}${path}`;
-  }
+  publicURL = path => `${process.env.PUBLIC_URL}${path}`;
 
-  smallestAngleDifference(a, b) {
+  smallestAngleDifference = (a, b) => {
     return Math.atan2(Math.sin(a - b), Math.cos(a - b));
-  }
+  };
 }
 
 export const initializeGame = () => {
