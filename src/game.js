@@ -55,8 +55,8 @@ class SkiSlope extends Phaser.Scene {
 
   update() {
     // CONTROL ROTATION
-    const maxAngularVelocity = Math.PI / 100;
-    const angularAcceleration = Math.PI / 2000;
+    const maxAngularVelocity = Math.PI / 70;
+    const angularAcceleration = Math.PI / 1000;
     const currentAngularVelocity = _.min([
       this.previousAngularVelocity + angularAcceleration,
       maxAngularVelocity,
