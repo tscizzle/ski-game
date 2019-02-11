@@ -35,15 +35,16 @@ class SkiSlope extends Phaser.Scene {
     this.edgeSnowParticles = this.add.particles('snowParticle');
     this.edgeSnowEmitter = this.edgeSnowParticles.createEmitter({
       radial: false,
-      lifespan: 500,
+      lifespan: 400,
       blendMode: 'ADD',
       on: false,
     });
     this.previousAngularVelocity = 0;
     this.previousDirection = null;
+    this.previousBackCorner = null;
 
     // CAMERA
-    this.cameras.main.setBackgroundColor(0xdddddd);
+    this.cameras.main.setBackgroundColor(0xf0f0f0);
     this.cameras.main.startFollow(this.skiPlayer);
 
     // CONTROLS
@@ -151,16 +152,15 @@ class SkiSlope extends Phaser.Scene {
     }
 
     // EMIT SNOW PARTICLES
-    const snowEmissionSpeed = skisPerpendicularSpeed;
+    const snowEmissionSpeed = skisPerpendicularSpeed * 1.1;
     const scrapeStrength = Math.abs(skisPerpendicularAcceleration);
     const isScraping = scrapeStrength >= 100;
     const isEmitterOn = this.edgeSnowEmitter.on;
-    if (isEmitterOn && !isScraping) {
-      this.edgeSnowEmitter.stop();
-    } else if (!isEmitterOn && isScraping) {
-      this.edgeSnowEmitter.start();
-    }
     if (isScraping) {
+      if (!isEmitterOn) {
+        this.edgeSnowEmitter.start();
+      }
+      // set the angle and speed of the snow emissions
       const isScrapeEdgeLeft = skisPerpendicularAngle === skisPerpendicularLeft;
       const skisBackCorner = isScrapeEdgeLeft
         ? this.skiPlayer.getBottomLeft()
@@ -180,6 +180,7 @@ class SkiSlope extends Phaser.Scene {
       });
       this.edgeSnowEmitter.setSpeed(snowEmissionSpeed);
       this.edgeSnowEmitter.setAngle(-90);
+      // set the frequency and size of the snow emissions
       const roundedScrapeStrength = Math.floor(scrapeStrength / 200) * 200;
       const ceilingScrapeStrength = 1000;
       const slowestEmitterFrequency = 50;
@@ -204,6 +205,35 @@ class SkiSlope extends Phaser.Scene {
         this.edgeSnowEmitter.setFrequency(newEmitterFrequency);
         this.edgeSnowEmitter.setScale({ start: newEmitterScale, end: 0 });
       }
+      // leave a trail in the snow
+      if (this.previousBackCorner) {
+        const graphics = this.add.graphics();
+        graphics.setDefaultStyles({
+          lineStyle: { width: 3, color: 0xcccccc, alpha: 1 },
+          fillStyle: { color: 0xcccccc, alpha: 1 },
+        });
+        const line = graphics.lineBetween(
+          this.previousBackCorner.x,
+          this.previousBackCorner.y,
+          skisBackCorner.x,
+          skisBackCorner.y
+        );
+        this.add.tween({
+          targets: [line],
+          duration: 1000,
+          alpha: 0,
+          onComplete() {
+            line.destroy();
+            graphics.destroy();
+          },
+        });
+      }
+      this.previousBackCorner = skisBackCorner;
+    } else {
+      if (isEmitterOn) {
+        this.edgeSnowEmitter.stop();
+      }
+      this.previousBackCorner = null;
     }
   }
 
