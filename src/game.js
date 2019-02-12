@@ -4,9 +4,6 @@ import Phaser from 'phaser';
 class SkiSlope extends Phaser.Scene {
   constructor() {
     super('SkiSlope');
-    this.slopeSteepness = Math.PI / 6; // angle with ground
-    this.slopeDirection = 0; // angle rotated clockwise from forward
-    this.gravityAccelerationConstant = 500;
   }
 
   preload() {
@@ -14,7 +11,12 @@ class SkiSlope extends Phaser.Scene {
       'arrows',
       this.publicURL('gameAssets/images/racingArrows.png')
     );
-    this.load.image('skis', this.publicURL('gameAssets/images/skis.png'));
+    this.load.image('skiBody', this.publicURL('gameAssets/images/skiBody.png'));
+    this.load.image('leftSki', this.publicURL('gameAssets/images/leftSki.png'));
+    this.load.image(
+      'rightSki',
+      this.publicURL('gameAssets/images/rightSki.png')
+    );
     this.load.image(
       'snowParticle',
       this.publicURL('gameAssets/images/snowParticle.png')
@@ -22,6 +24,19 @@ class SkiSlope extends Phaser.Scene {
   }
 
   create() {
+    // INITIALIZE CONSTANTS
+    this.slopeSteepness = Math.PI / 6; // angle with ground
+    this.slopeDirection = 0; // angle rotated clockwise from forward
+    this.gravityAccelerationConstant = 500;
+
+    // INITIALIZE VALUES THAT GET UPDATED
+    this.previousAngularVelocity = 0;
+    this.previousTurnDirection = null;
+    this.previousTiltAmount = 0;
+    this.previousTiltDirection = null;
+    this.previousBackCorner = null;
+    this.standingOnSkis = true;
+
     // VISUAL OBJECTS
     this.refArrows = [
       this.add.sprite(0, 0, 'arrows'),
@@ -30,8 +45,16 @@ class SkiSlope extends Phaser.Scene {
       this.add.sprite(500, 500, 'arrows'),
     ];
     _.each(this.refArrows, arrow => arrow.setScale(0.75));
-    this.skiPlayer = this.physics.add.sprite(250, 250, 'skis');
+    this.skiBody = this.add.sprite(0, 0, 'skiBody');
+    this.leftSki = this.add.sprite(-40, 0, 'leftSki');
+    this.rightSki = this.add.sprite(40, 0, 'rightSki');
+    this.skiPlayer = this.add.container(250, 250, [
+      this.skiBody,
+      this.leftSki,
+      this.rightSki,
+    ]);
     this.skiPlayer.setScale(0.25);
+    this.physics.world.enable(this.skiPlayer);
     this.edgeSnowParticles = this.add.particles('snowParticle');
     this.edgeSnowEmitter = this.edgeSnowParticles.createEmitter({
       radial: false,
@@ -39,9 +62,6 @@ class SkiSlope extends Phaser.Scene {
       blendMode: 'ADD',
       on: false,
     });
-    this.previousAngularVelocity = 0;
-    this.previousDirection = null;
-    this.previousBackCorner = null;
 
     // CAMERA
     this.cameras.main.setBackgroundColor(0xf0f0f0);
@@ -49,6 +69,12 @@ class SkiSlope extends Phaser.Scene {
 
     // CONTROLS
     this.skiTurningCursors = this.input.keyboard.createCursorKeys();
+    this.skiTiltCursors = this.input.keyboard.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.W,
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      right: Phaser.Input.Keyboard.KeyCodes.D,
+    });
 
     // this.scene.pause();
   }
@@ -62,25 +88,60 @@ class SkiSlope extends Phaser.Scene {
       maxAngularVelocity,
     ]);
     if (this.skiTurningCursors.left.isDown) {
-      if (this.previousDirection !== 'right') {
+      if (this.previousTurnDirection !== 'right') {
         this.skiPlayer.rotation -= currentAngularVelocity;
         this.previousAngularVelocity = currentAngularVelocity;
       } else {
         this.previousAngularVelocity = 0;
       }
-      this.previousDirection = 'left';
+      this.previousTurnDirection = 'left';
     } else if (this.skiTurningCursors.right.isDown) {
-      if (this.previousDirection !== 'left') {
+      if (this.previousTurnDirection !== 'left') {
         this.skiPlayer.rotation += currentAngularVelocity;
         this.previousAngularVelocity = currentAngularVelocity;
       } else {
         this.previousAngularVelocity = 0;
       }
-      this.previousDirection = 'right';
+      this.previousTurnDirection = 'right';
     } else {
       this.previousAngularVelocity = 0;
-      this.previousDirection = null;
+      this.previousTurnDirection = null;
     }
+
+    // CONTROL TILT
+    const maxSkisScale = 1;
+    const minSkisScale = 0.8;
+    const maxTilt = 1;
+    const minTilt = 0;
+    const tiltVelocity = 0.05;
+    let tiltAmount;
+    let tiltDirection = this.previousTiltDirection;
+    if (this.skiTiltCursors.left.isDown) {
+      if (this.previousTiltDirection !== 'right') {
+        tiltAmount = _.min([this.previousTiltAmount + tiltVelocity, maxTilt]);
+        tiltDirection = 'left';
+      } else {
+        tiltAmount = _.max([this.previousTiltAmount - tiltVelocity, minTilt]);
+      }
+    } else if (this.skiTiltCursors.right.isDown) {
+      if (this.previousTiltDirection !== 'left') {
+        tiltAmount = _.min([this.previousTiltAmount + tiltVelocity, maxTilt]);
+        tiltDirection = 'right';
+      } else {
+        tiltAmount = _.max([this.previousTiltAmount - tiltVelocity, minTilt]);
+      }
+    } else {
+      tiltAmount = _.max([this.previousTiltAmount - tiltVelocity, minTilt]);
+    }
+    if (tiltAmount === 0) {
+      tiltDirection = null;
+    }
+    const skisScaleX =
+      maxSkisScale * (1 - tiltAmount) + minSkisScale * tiltAmount;
+    this.leftSki.setScale(skisScaleX, maxSkisScale);
+    this.rightSki.setScale(skisScaleX, maxSkisScale);
+    this.previousTiltAmount = tiltAmount;
+    this.previousTiltDirection = tiltDirection;
 
     // ACCELERATE DUE TO GRAVITY
     // acceleration lessened by the ground
@@ -119,7 +180,10 @@ class SkiSlope extends Phaser.Scene {
     // turn factor scales the velocity to get the (negative) acceleration in the
     // direction perpendicular to the skis
     const skisPerpendicularSpeed = this.skiPlayer.body.speed * turnFactor;
-    const skisPerpendicularAcceleration = -skisPerpendicularSpeed;
+    // scale the acceleration by the amount the skis are tilted, with some
+    // scrape even when there's no tilt
+    const tiltFactor = 0.1 + tiltAmount * 0.9;
+    const skisPerpendicularAcceleration = -skisPerpendicularSpeed * tiltFactor;
     // split this acceleration into its x-y components
     const accelerationDueToEdging = {
       x: Math.sin(skisPerpendicularAngle) * skisPerpendicularAcceleration,
@@ -151,7 +215,7 @@ class SkiSlope extends Phaser.Scene {
       this.refArrows[3].setPosition(closestRight, closestAbove);
     }
 
-    // EMIT SNOW PARTICLES
+    // SCRAPE EFFECTS
     const snowEmissionSpeed = skisPerpendicularSpeed * 1.1;
     const scrapeStrength = Math.abs(skisPerpendicularAcceleration);
     const isScraping = scrapeStrength >= 100;
@@ -161,13 +225,16 @@ class SkiSlope extends Phaser.Scene {
         this.edgeSnowEmitter.start();
       }
       // set the angle and speed of the snow emissions
-      const isScrapeEdgeLeft = skisPerpendicularAngle === skisPerpendicularLeft;
-      const skisBackCorner = isScrapeEdgeLeft
-        ? this.skiPlayer.getBottomLeft()
-        : this.skiPlayer.getBottomRight();
-      const skisFrontCorner = isScrapeEdgeLeft
-        ? this.skiPlayer.getTopLeft()
-        : this.skiPlayer.getTopRight();
+      const scrapeEdge =
+        skisPerpendicularAngle === skisPerpendicularLeft ? 'left' : 'right';
+      const skisBackCorner =
+        scrapeEdge === 'left'
+          ? this.skiBody.getBottomLeft(null, true)
+          : this.skiBody.getBottomRight(null, true);
+      const skisFrontCorner =
+        scrapeEdge === 'left'
+          ? this.skiBody.getTopLeft(null, true)
+          : this.skiBody.getTopRight(null, true);
       const scrapingLine = new Phaser.Geom.Line(
         skisBackCorner.x,
         skisBackCorner.y,
@@ -208,10 +275,7 @@ class SkiSlope extends Phaser.Scene {
       // leave a trail in the snow
       if (this.previousBackCorner) {
         const graphics = this.add.graphics();
-        graphics.setDefaultStyles({
-          lineStyle: { width: 3, color: 0xcccccc, alpha: 1 },
-          fillStyle: { color: 0xcccccc, alpha: 1 },
-        });
+        graphics.setDefaultStyles({ lineStyle: { width: 3, color: 0xcccccc } });
         const line = graphics.lineBetween(
           this.previousBackCorner.x,
           this.previousBackCorner.y,
@@ -229,11 +293,22 @@ class SkiSlope extends Phaser.Scene {
         });
       }
       this.previousBackCorner = skisBackCorner;
+
+      // fall off skis if tilting toward the scrape
+      if (scrapeEdge === tiltDirection) {
+        this.standingOnSkis = false;
+      }
     } else {
       if (isEmitterOn) {
         this.edgeSnowEmitter.stop();
       }
       this.previousBackCorner = null;
+    }
+
+    // CRASH IF NO LONGER ON SKIS
+    if (!this.standingOnSkis) {
+      this.skiPlayer.body.setVelocity(0);
+      this.skiPlayer.body.setAcceleration(0);
     }
   }
 
