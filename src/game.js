@@ -7,6 +7,9 @@ class SkiSlope extends Phaser.Scene {
   }
 
   preload() {
+    console.log('HOF');
+    console.log(this.publicURL(''));
+    console.log('BOOGA');
     this.load.image(
       'arrows',
       this.publicURL('gameAssets/images/racingArrows.png')
