@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/ski-game/precache-manifest.622952e538abd2ae18e9a12be4c934c0.js"
+  "/ski-game/precache-manifest.63a648837023b4a076011f2291f1c7b6.js"
 );
 
 workbox.clientsClaim();

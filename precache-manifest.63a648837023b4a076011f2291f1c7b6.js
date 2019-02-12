@@ -1,11 +1,11 @@
 self.__precacheManifest = [
   {
-    "revision": "e283ac8fb538f4aceb82",
+    "revision": "32bed85ba57e066c5385",
     "url": "/ski-game/static/css/main.72a368f3.chunk.css"
   },
   {
-    "revision": "e283ac8fb538f4aceb82",
-    "url": "/ski-game/static/js/main.e283ac8f.chunk.js"
+    "revision": "32bed85ba57e066c5385",
+    "url": "/ski-game/static/js/main.32bed85b.chunk.js"
   },
   {
     "revision": "488d0b8abd9a68da4f1f",
@@ -16,7 +16,7 @@ self.__precacheManifest = [
     "url": "/ski-game/static/js/runtime~main.e1e6cde6.js"
   },
   {
-    "revision": "c66ad9a354fc0e4bbea2bd33e49c43ad",
+    "revision": "996616d7efcf79fdf0c4d70729de278f",
     "url": "/ski-game/index.html"
   }
 ];
