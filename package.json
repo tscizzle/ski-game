@@ -2,7 +2,7 @@
   "name": "ski-game",
   "version": "0.1.0",
   "private": true,
-  "homepage": "http://tscizzle.github.io/ski-game",
+  "homepage": "https://tscizzle.github.io/ski-game",
   "eslintConfig": {
     "extends": "react-app"
   },

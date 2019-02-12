@@ -146,18 +146,24 @@ class SkiSlope extends Phaser.Scene {
     // ACCELERATE DUE TO GRAVITY
     // acceleration lessened by the ground
     const slopeFactor = Math.sin(this.slopeSteepness);
-    // acceleration lessened if skis not lined up with the slope direction
+    // acceleration is parallel to skis if they are tilted. otherwise
+    // acceleration is in direction of the slope.
+    const gravityAccelerationDirection = _.isNull(tiltDirection)
+      ? this.slopeDirection
+      : this.skiPlayer.rotation;
+    // acceleration lessened if acceleration not lined up with the slope
+    // direction
     const traversalFactor = Math.cos(
-      this.skiPlayer.rotation - this.slopeDirection
+      gravityAccelerationDirection - this.slopeDirection
     );
     // slope and traversal factors scale the gravity constant to get the
-    // acceleration in the direction of the skis
-    const parallelAcceleration =
+    // acceleration
+    const accelerationMagnitude =
       this.gravityAccelerationConstant * slopeFactor * traversalFactor;
     // split this acceleration into its x-y components
     const accelerationDueToGravity = {
-      x: Math.sin(this.skiPlayer.rotation) * parallelAcceleration,
-      y: -Math.cos(this.skiPlayer.rotation) * parallelAcceleration,
+      x: Math.sin(gravityAccelerationDirection) * accelerationMagnitude,
+      y: -Math.cos(gravityAccelerationDirection) * accelerationMagnitude,
     };
 
     // DECELERATE DUE TO SKI EDGES
