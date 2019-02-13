@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/ski-game/precache-manifest.63a648837023b4a076011f2291f1c7b6.js"
+  "https://tscizzle.github.io/ski-game/precache-manifest.6b4a4d6d9c1d71a543d5685643ee6cc0.js"
 );
 
 workbox.clientsClaim();
@@ -28,7 +28,7 @@ self.__precacheManifest = [].concat(self.__precacheManifest || []);
 workbox.precaching.suppressWarnings();
 workbox.precaching.precacheAndRoute(self.__precacheManifest, {});
 
-workbox.routing.registerNavigationRoute("/ski-game/index.html", {
+workbox.routing.registerNavigationRoute("https://tscizzle.github.io/ski-game/index.html", {
   
   blacklist: [/^\/_/,/\/[^\/]+\.[^\/]+$/],
 });
