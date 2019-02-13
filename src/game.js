@@ -7,20 +7,26 @@ class SkiSlope extends Phaser.Scene {
   }
 
   preload() {
-    console.log(this.publicURL('gameAssets/images/racingArrows.png'));
+    console.log(this.publicURL('/gameAssets/images/racingArrows.png'));
     this.load.image(
       'arrows',
-      this.publicURL('gameAssets/images/racingArrows.png')
+      this.publicURL('/gameAssets/images/racingArrows.png')
     );
-    this.load.image('skiBody', this.publicURL('gameAssets/images/skiBody.png'));
-    this.load.image('leftSki', this.publicURL('gameAssets/images/leftSki.png'));
+    this.load.image(
+      'skiBody',
+      this.publicURL('/gameAssets/images/skiBody.png')
+    );
+    this.load.image(
+      'leftSki',
+      this.publicURL('/gameAssets/images/leftSki.png')
+    );
     this.load.image(
       'rightSki',
-      this.publicURL('gameAssets/images/rightSki.png')
+      this.publicURL('/gameAssets/images/rightSki.png')
     );
     this.load.image(
       'snowParticle',
-      this.publicURL('gameAssets/images/snowParticle.png')
+      this.publicURL('/gameAssets/images/snowParticle.png')
     );
   }
 
