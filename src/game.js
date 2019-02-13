@@ -352,6 +352,7 @@ class SkiSlope extends Phaser.Scene {
     this.edgeSnowEmitter.setAngle({ min: 0, max: 360 });
     this.edgeSnowEmitter.setLifespan(800);
     this.edgeSnowEmitter.explode(20, 0, 0);
+    this.cameras.main.shake(300, 0.07);
   }
 
   /* MISC HELPERS */
