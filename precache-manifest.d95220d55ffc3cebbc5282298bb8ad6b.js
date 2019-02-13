@@ -1,11 +1,11 @@
 self.__precacheManifest = [
   {
-    "revision": "e870135311dfaa48cd3e",
+    "revision": "3c76f8aca11dbb3b3e11",
     "url": "https://tscizzle.github.io/ski-game/static/css/main.72a368f3.chunk.css"
   },
   {
-    "revision": "e870135311dfaa48cd3e",
-    "url": "https://tscizzle.github.io/ski-game/static/js/main.e8701353.chunk.js"
+    "revision": "3c76f8aca11dbb3b3e11",
+    "url": "https://tscizzle.github.io/ski-game/static/js/main.3c76f8ac.chunk.js"
   },
   {
     "revision": "488d0b8abd9a68da4f1f",
@@ -16,7 +16,7 @@ self.__precacheManifest = [
     "url": "https://tscizzle.github.io/ski-game/static/js/runtime~main.84780ba9.js"
   },
   {
-    "revision": "0af6a9e4e178da4010afbd9baffd10d4",
+    "revision": "7b1ff93402300aa6d5075924c0c3baf0",
     "url": "https://tscizzle.github.io/ski-game/index.html"
   }
 ];

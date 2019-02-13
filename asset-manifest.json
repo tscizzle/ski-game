@@ -1,13 +1,13 @@
 {
   "main.css": "https://tscizzle.github.io/ski-game/static/css/main.72a368f3.chunk.css",
-  "main.js": "https://tscizzle.github.io/ski-game/static/js/main.e8701353.chunk.js",
-  "main.js.map": "https://tscizzle.github.io/ski-game/static/js/main.e8701353.chunk.js.map",
+  "main.js": "https://tscizzle.github.io/ski-game/static/js/main.3c76f8ac.chunk.js",
+  "main.js.map": "https://tscizzle.github.io/ski-game/static/js/main.3c76f8ac.chunk.js.map",
   "static/js/1.488d0b8a.chunk.js": "https://tscizzle.github.io/ski-game/static/js/1.488d0b8a.chunk.js",
   "static/js/1.488d0b8a.chunk.js.map": "https://tscizzle.github.io/ski-game/static/js/1.488d0b8a.chunk.js.map",
   "runtime~main.js": "https://tscizzle.github.io/ski-game/static/js/runtime~main.84780ba9.js",
   "runtime~main.js.map": "https://tscizzle.github.io/ski-game/static/js/runtime~main.84780ba9.js.map",
   "static/css/main.72a368f3.chunk.css.map": "https://tscizzle.github.io/ski-game/static/css/main.72a368f3.chunk.css.map",
   "index.html": "https://tscizzle.github.io/ski-game/index.html",
-  "precache-manifest.40b563dc7b5ac637e86ffea59e27306e.js": "https://tscizzle.github.io/ski-game/precache-manifest.40b563dc7b5ac637e86ffea59e27306e.js",
+  "precache-manifest.d95220d55ffc3cebbc5282298bb8ad6b.js": "https://tscizzle.github.io/ski-game/precache-manifest.d95220d55ffc3cebbc5282298bb8ad6b.js",
   "service-worker.js": "https://tscizzle.github.io/ski-game/service-worker.js"
 }
