@@ -1,37 +1,29 @@
 import _ from 'lodash';
 import Phaser from 'phaser';
 
-class SkiSlope extends Phaser.Scene {
+const GAME_WIDTH = _.max([window.innerWidth - 6, 1200]);
+const GAME_HEIGHT = _.max([window.innerHeight - 6, 800]);
+console.log(GAME_WIDTH, GAME_HEIGHT);
+
+class MountainSlope extends Phaser.Scene {
   constructor() {
-    super('SkiSlope');
+    super('MountainSlope');
   }
 
   /* MAIN PHASER METHODS */
 
   preload() {
-    this.load.image(
-      'arrows',
-      this.publicURL('/gameAssets/images/racingArrows.png')
-    );
-    this.load.image(
-      'skiBody',
-      this.publicURL('/gameAssets/images/skiBody.png')
-    );
-    this.load.image(
-      'leftSki',
-      this.publicURL('/gameAssets/images/leftSki.png')
-    );
-    this.load.image(
-      'rightSki',
-      this.publicURL('/gameAssets/images/rightSki.png')
-    );
+    this.load.image('arrows', publicURL('/gameAssets/images/racingArrows.png'));
+    this.load.image('skiBody', publicURL('/gameAssets/images/skiBody.png'));
+    this.load.image('leftSki', publicURL('/gameAssets/images/leftSki.png'));
+    this.load.image('rightSki', publicURL('/gameAssets/images/rightSki.png'));
     this.load.image(
       'snowParticle',
-      this.publicURL('/gameAssets/images/snowParticle.png')
+      publicURL('/gameAssets/images/snowParticle.png')
     );
     this.load.image(
       'crashedSkis',
-      this.publicURL('/gameAssets/images/crashedSkis.png')
+      publicURL('/gameAssets/images/crashedSkis.png')
     );
   }
 
@@ -50,27 +42,28 @@ class SkiSlope extends Phaser.Scene {
     this.isCrashed = false;
 
     // VISUAL OBJECTS
+    this.refDistance = GAME_WIDTH / 2 + 100;
     this.refArrows = [
       this.add.sprite(0, 0, 'arrows'),
-      this.add.sprite(0, 500, 'arrows'),
-      this.add.sprite(500, 0, 'arrows'),
-      this.add.sprite(500, 500, 'arrows'),
+      this.add.sprite(0, this.refDistance, 'arrows'),
+      this.add.sprite(this.refDistance, 0, 'arrows'),
+      this.add.sprite(this.refDistance, this.refDistance, 'arrows'),
     ];
     _.each(this.refArrows, arrow => arrow.setScale(0.75));
     this.skiBody = this.add.sprite(0, 0, 'skiBody');
     this.leftSki = this.add.sprite(-40, 0, 'leftSki');
     this.rightSki = this.add.sprite(40, 0, 'rightSki');
-    this.skiPlayer = this.add.container(250, 250, [
-      this.skiBody,
-      this.leftSki,
-      this.rightSki,
-    ]);
+    this.skiPlayer = this.add.container(
+      this.refDistance / 2,
+      this.refDistance / 2,
+      [this.skiBody, this.leftSki, this.rightSki]
+    );
     this.skiPlayer.setScale(0.25);
     this.physics.world.enable(this.skiPlayer);
     this.edgeSnowParticles = this.add.particles('snowParticle');
     this.edgeSnowEmitter = this.edgeSnowParticles.createEmitter({
       radial: false,
-      lifespan: 400,
+      lifespan: 375,
       quantity: 5,
       angle: { min: -100, max: -80 },
       blendMode: 'ADD',
@@ -136,10 +129,10 @@ class SkiSlope extends Phaser.Scene {
     const skisPerpendicularLeft = this.skiPlayer.rotation - Math.PI / 2;
     const skisPerpendicularRight = this.skiPlayer.rotation + Math.PI / 2;
     const leftDiff = Math.abs(
-      this.smallestAngleDifference(skisPerpendicularLeft, velocityAngle)
+      smallestAngleDifference(skisPerpendicularLeft, velocityAngle)
     );
     const rightDiff = Math.abs(
-      this.smallestAngleDifference(skisPerpendicularRight, velocityAngle)
+      smallestAngleDifference(skisPerpendicularRight, velocityAngle)
     );
     const skisPerpendicularAngle =
       leftDiff < rightDiff ? skisPerpendicularLeft : skisPerpendicularRight;
@@ -322,17 +315,16 @@ class SkiSlope extends Phaser.Scene {
   }
 
   drawReferenceObjects() {
-    const refDistance = 500;
     const closestBelow =
-      Math.floor(this.skiPlayer.y / refDistance) * refDistance;
+      Math.floor(this.skiPlayer.y / this.refDistance) * this.refDistance;
     const closestLeft =
-      Math.floor(this.skiPlayer.x / refDistance) * refDistance;
+      Math.floor(this.skiPlayer.x / this.refDistance) * this.refDistance;
     const needNewRefs =
       this.refArrows[0].x !== closestLeft ||
       this.refArrows[0].y !== closestBelow;
     if (needNewRefs) {
-      const closestRight = closestLeft + refDistance;
-      const closestAbove = closestBelow + refDistance;
+      const closestRight = closestLeft + this.refDistance;
+      const closestAbove = closestBelow + this.refDistance;
       this.refArrows[0].setPosition(closestLeft, closestBelow);
       this.refArrows[1].setPosition(closestLeft, closestAbove);
       this.refArrows[2].setPosition(closestRight, closestBelow);
@@ -350,29 +342,102 @@ class SkiSlope extends Phaser.Scene {
     this.skiPlayer.add(this.crashedSkis);
     this.edgeSnowEmitter.setScale({ start: 1, end: 0 });
     this.edgeSnowEmitter.setAngle({ min: 0, max: 360 });
-    this.edgeSnowEmitter.setLifespan(800);
-    this.edgeSnowEmitter.explode(20, 0, 0);
+    this.edgeSnowEmitter.setLifespan(750);
+    this.edgeSnowEmitter.explode(30, 0, 0);
     this.cameras.main.shake(300, 0.07);
   }
-
-  /* MISC HELPERS */
-
-  publicURL = path => `${process.env.PUBLIC_URL}${path}`;
-
-  smallestAngleDifference = (a, b) => {
-    return Math.atan2(Math.sin(a - b), Math.cos(a - b));
-  };
 }
+
+class SkiTiltDisplay extends Phaser.Scene {
+  constructor() {
+    super({ key: 'SkiTiltDisplay', active: true });
+  }
+
+  /* MAIN PHASER METHODS */
+
+  preload() {
+    this.load.image(
+      'leftSkiBack',
+      publicURL('/gameAssets/images/leftSkiBack.png')
+    );
+    this.load.image(
+      'rightSkiBack',
+      publicURL('/gameAssets/images/rightSkiBack.png')
+    );
+  }
+
+  create() {
+    const displayWidth = 240;
+    const displayHeight = 110;
+    const displayCenterX = GAME_WIDTH - 45 - displayWidth / 2;
+    const displayCenterY = GAME_HEIGHT - 45 - displayHeight / 2;
+
+    const graphics = this.add.graphics();
+    graphics.setDefaultStyles({
+      lineStyle: { width: 7, color: 0x777777 },
+      fillStyle: { color: 0xdddddd },
+    });
+    graphics.strokeRect(
+      displayCenterX - displayWidth / 2,
+      displayCenterY - displayHeight / 2,
+      displayWidth,
+      displayHeight
+    );
+    graphics.fillRect(
+      displayCenterX - displayWidth / 2,
+      displayCenterY - displayHeight / 2,
+      displayWidth,
+      displayHeight
+    );
+
+    this.leftSki = this.add.sprite(-220, 0, 'leftSkiBack');
+    this.rightSki = this.add.sprite(220, 0, 'rightSkiBack');
+    this.skis = this.add.container(displayCenterX, displayCenterY, [
+      this.leftSki,
+      this.rightSki,
+    ]);
+    this.skis.setScale(0.23);
+  }
+
+  update() {
+    const slopeScene = this.scene.get('MountainSlope');
+    const {
+      previousTiltAmount: tiltAmount,
+      previousTiltDirection: tiltDirection,
+    } = slopeScene;
+    const minRotation = 0;
+    const maxRotation = Math.PI / 4;
+    const tiltRotationSign = tiltDirection === 'left' ? -1 : 1;
+    const tiltRotationMagnitude =
+      minRotation * (1 - tiltAmount) + maxRotation * tiltAmount;
+    const tiltRotation = tiltRotationMagnitude * tiltRotationSign;
+    this.leftSki.rotation = tiltRotation;
+    this.rightSki.rotation = tiltRotation;
+  }
+}
+
+/* MISC HELPERS */
+
+const publicURL = path => {
+  return `${process.env.PUBLIC_URL}${path}`;
+};
+
+const smallestAngleDifference = (a, b) => {
+  return Math.atan2(Math.sin(a - b), Math.cos(a - b));
+};
+
+/* MAKE GAME STARTABLE FROM ELSEWHERE */
 
 export const initializeGame = () => {
   const gameConfig = {
-    type: Phaser.AUTO,
-    width: 800,
-    height: 800,
-    scene: [SkiSlope],
+    width: GAME_WIDTH,
+    height: GAME_HEIGHT,
+    scene: [MountainSlope, SkiTiltDisplay],
     physics: {
       default: 'arcade',
     },
+    type: Phaser.AUTO,
+    parent: 'game-container',
   };
   const game = new Phaser.Game(gameConfig);
   return game;
