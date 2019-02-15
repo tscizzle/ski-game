@@ -4,14 +4,16 @@ import { initializeGame } from 'game';
 import 'stylesheets/components/app/app.css';
 
 class App extends Component {
+  containerId = 'game-container';
+
   componentDidMount() {
-    initializeGame();
+    initializeGame({ parent: this.containerId });
   }
 
   render() {
     return (
       <div className="app">
-        <div id="game-container" />
+        <div id={this.containerId} />
       </div>
     );
   }
