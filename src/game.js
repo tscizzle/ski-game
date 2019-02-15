@@ -3,7 +3,6 @@ import Phaser from 'phaser';
 
 const GAME_WIDTH = _.max([window.innerWidth - 6, 1200]);
 const GAME_HEIGHT = _.max([window.innerHeight - 6, 800]);
-console.log(GAME_WIDTH, GAME_HEIGHT);
 
 class MountainSlope extends Phaser.Scene {
   constructor() {
@@ -42,7 +41,7 @@ class MountainSlope extends Phaser.Scene {
     this.isCrashed = false;
 
     // VISUAL OBJECTS
-    this.refDistance = GAME_WIDTH / 2 + 100;
+    this.refDistance = _.max([GAME_WIDTH, GAME_HEIGHT]) / 2 + 100;
     this.refArrows = [
       this.add.sprite(0, 0, 'arrows'),
       this.add.sprite(0, this.refDistance, 'arrows'),
