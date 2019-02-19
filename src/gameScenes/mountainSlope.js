@@ -1,7 +1,12 @@
 import _ from 'lodash';
 import Phaser from 'phaser';
 
-import { publicURL, smallestAngleDifference } from 'gameHelpers';
+import {
+  publicURL,
+  mapInfToOne,
+  smallestAngleDifference,
+  makeArrow,
+} from 'gameHelpers';
 import { GAME_WIDTH, GAME_HEIGHT } from 'gameConstants';
 
 class MountainSlope extends Phaser.Scene {
@@ -12,7 +17,10 @@ class MountainSlope extends Phaser.Scene {
   /* MAIN PHASER METHODS */
 
   preload() {
-    this.load.image('arrows', publicURL('/gameAssets/images/racingArrows.png'));
+    this.load.image(
+      'refMarkers',
+      publicURL('/gameAssets/images/racingArrows.png')
+    );
     this.load.image('skiBody', publicURL('/gameAssets/images/skiBody.png'));
     this.load.image('leftSki', publicURL('/gameAssets/images/leftSki.png'));
     this.load.image('rightSki', publicURL('/gameAssets/images/rightSki.png'));
@@ -42,13 +50,13 @@ class MountainSlope extends Phaser.Scene {
 
     // VISUAL OBJECTS
     this.refDistance = _.max([GAME_WIDTH, GAME_HEIGHT]) / 2 + 100;
-    this.refArrows = [
-      this.add.sprite(0, 0, 'arrows'),
-      this.add.sprite(0, this.refDistance, 'arrows'),
-      this.add.sprite(this.refDistance, 0, 'arrows'),
-      this.add.sprite(this.refDistance, this.refDistance, 'arrows'),
+    this.refMarkers = [
+      this.add.sprite(0, 0, 'refMarkers'),
+      this.add.sprite(0, this.refDistance, 'refMarkers'),
+      this.add.sprite(this.refDistance, 0, 'refMarkers'),
+      this.add.sprite(this.refDistance, this.refDistance, 'refMarkers'),
     ];
-    _.each(this.refArrows, arrow => arrow.setScale(0.75));
+    _.each(this.refMarkers, marker => marker.setScale(0.75));
     this.skiBody = this.add.sprite(0, 0, 'skiBody');
     this.leftSki = this.add.sprite(-40, 0, 'leftSki');
     this.rightSki = this.add.sprite(40, 0, 'rightSki');
@@ -70,7 +78,7 @@ class MountainSlope extends Phaser.Scene {
     });
 
     // CAMERA
-    this.cameras.main.setBackgroundColor(0xf0f0f0);
+    this.cameras.main.setBackgroundColor(0xf5f5f5);
     this.cameras.main.startFollow(this.skiPlayer);
 
     // CONTROLS
@@ -89,6 +97,8 @@ class MountainSlope extends Phaser.Scene {
     this.drawReferenceObjects();
 
     if (!this.isCrashed) {
+      this.drawVelocityArrow();
+      this.drawSkisFacingArrow();
       this.controlRotation();
       this.controlTilt();
     }
@@ -215,7 +225,9 @@ class MountainSlope extends Phaser.Scene {
       // leave a trail in the snow
       if (this.previousBackCorner) {
         const graphics = this.add.graphics();
-        graphics.setDefaultStyles({ lineStyle: { width: 3, color: 0xcccccc } });
+        graphics.setDefaultStyles({
+          lineStyle: { width: 3, color: 0xcccccc },
+        });
         const line = graphics.lineBetween(
           this.previousBackCorner.x,
           this.previousBackCorner.y,
@@ -227,7 +239,6 @@ class MountainSlope extends Phaser.Scene {
           duration: 1000,
           alpha: 0,
           onComplete() {
-            line.destroy();
             graphics.destroy();
           },
         });
@@ -313,21 +324,55 @@ class MountainSlope extends Phaser.Scene {
     this.previousTiltDirection = tiltDirection;
   }
 
+  drawVelocityArrow() {
+    const maxArrowLength = 250;
+    const mappedSpeed = mapInfToOne(this.skiPlayer.body.speed);
+    const arrowLength = maxArrowLength * mappedSpeed;
+    const arrowLengthX =
+      (this.skiPlayer.body.velocity.x / this.skiPlayer.body.speed) *
+      arrowLength;
+    const arrowLengthY =
+      (this.skiPlayer.body.velocity.y / this.skiPlayer.body.speed) *
+      arrowLength;
+    const start = { x: this.skiPlayer.x, y: this.skiPlayer.y };
+    const end = {
+      x: start.x + arrowLengthX,
+      y: start.y + arrowLengthY,
+    };
+    if (this.velocityArrowGraphics) {
+      this.velocityArrowGraphics.destroy();
+    }
+    this.velocityArrowGraphics = makeArrow(start, end, this);
+  }
+
+  drawSkisFacingArrow() {
+    const arrowLength = 120;
+    const start = { x: this.skiPlayer.x, y: this.skiPlayer.y };
+    const end = {
+      x: start.x + Math.sin(this.skiPlayer.rotation) * arrowLength,
+      y: start.y - Math.cos(this.skiPlayer.rotation) * arrowLength,
+    };
+    if (this.skisFacingArrowGraphics) {
+      this.skisFacingArrowGraphics.destroy();
+    }
+    this.skisFacingArrowGraphics = makeArrow(start, end, this);
+  }
+
   drawReferenceObjects() {
     const closestBelow =
       Math.floor(this.skiPlayer.y / this.refDistance) * this.refDistance;
     const closestLeft =
       Math.floor(this.skiPlayer.x / this.refDistance) * this.refDistance;
     const needNewRefs =
-      this.refArrows[0].x !== closestLeft ||
-      this.refArrows[0].y !== closestBelow;
+      this.refMarkers[0].x !== closestLeft ||
+      this.refMarkers[0].y !== closestBelow;
     if (needNewRefs) {
       const closestRight = closestLeft + this.refDistance;
       const closestAbove = closestBelow + this.refDistance;
-      this.refArrows[0].setPosition(closestLeft, closestBelow);
-      this.refArrows[1].setPosition(closestLeft, closestAbove);
-      this.refArrows[2].setPosition(closestRight, closestBelow);
-      this.refArrows[3].setPosition(closestRight, closestAbove);
+      this.refMarkers[0].setPosition(closestLeft, closestBelow);
+      this.refMarkers[1].setPosition(closestLeft, closestAbove);
+      this.refMarkers[2].setPosition(closestRight, closestBelow);
+      this.refMarkers[3].setPosition(closestRight, closestAbove);
     }
   }
 

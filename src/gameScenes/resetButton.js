@@ -14,13 +14,14 @@ class ResetButton extends Phaser.Scene {
     const displayCenterX = GAME_WIDTH / 2;
     const displayCenterY = GAME_HEIGHT - 45 - displayHeight / 2;
 
+    const graphics = this.add.graphics();
+    graphics.setDefaultStyles({
+      lineStyle: { width: 8, color: 0x44aa44 },
+      fillStyle: { color: 0x88dd88 },
+    });
+
     const slopeScene = this.scene.get('MountainSlope');
     slopeScene.events.on('crash', () => {
-      const graphics = this.add.graphics();
-      graphics.setDefaultStyles({
-        lineStyle: { width: 8, color: 0x44aa44 },
-        fillStyle: { color: 0x88dd88 },
-      });
       const rectArgs = [
         displayCenterX - displayWidth / 2,
         displayCenterY - displayHeight / 2,
