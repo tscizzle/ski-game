@@ -35,7 +35,7 @@ class ResetButton extends Phaser.Scene {
         displayCenterX,
         displayCenterY,
         'Lift Back Up',
-        { color: '#228822', fontSize: '28px', fontStyle: 'bold' }
+        { color: '#117711', fontSize: '28px', fontStyle: 'bold' }
       );
       resetButtonText.setOrigin(0.5, 0.5);
       const resetButton = this.add.zone(

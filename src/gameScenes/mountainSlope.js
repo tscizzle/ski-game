@@ -8,7 +8,7 @@ import {
   smallestAngleDifference,
   makeArrow,
 } from 'gameHelpers';
-import { GAME_WIDTH, GAME_HEIGHT, VECTOR_COLORS } from 'gameConstants';
+import { GAME_WIDTH, GAME_HEIGHT } from 'gameConstants';
 
 class MountainSlope extends Phaser.Scene {
   constructor() {
@@ -351,7 +351,8 @@ class MountainSlope extends Phaser.Scene {
     }
 
     const legendScene = this.scene.get('VectorLegend');
-    if (legendScene.vectorInfos.rotation.on) {
+    const vectorInfo = legendScene.vectorInfos['rotation'];
+    if (vectorInfo.on) {
       const arrowLength = 120;
       const start = {
         x: this.storedSkiPlayerPosition.x,
@@ -361,7 +362,7 @@ class MountainSlope extends Phaser.Scene {
         x: start.x + Math.sin(this.storedSkiPlayerRotation) * arrowLength,
         y: start.y - Math.cos(this.storedSkiPlayerRotation) * arrowLength,
       };
-      const color = VECTOR_COLORS.rotationArrowColor;
+      const color = vectorInfo.color;
       this.skisFacingArrowGraphics = makeArrow({
         scene: this,
         start,
@@ -377,7 +378,8 @@ class MountainSlope extends Phaser.Scene {
     }
 
     const legendScene = this.scene.get('VectorLegend');
-    if (legendScene.vectorInfos.velocity.on) {
+    const vectorInfo = legendScene.vectorInfos['velocity'];
+    if (vectorInfo.on) {
       const maxArrowLength = 250;
       const mappedSpeed = mapInfToOne(this.storedSkiPlayerSpeed);
       const arrowLength = maxArrowLength * mappedSpeed;
@@ -395,7 +397,7 @@ class MountainSlope extends Phaser.Scene {
         x: start.x + arrowLengthX,
         y: start.y + arrowLengthY,
       };
-      const color = VECTOR_COLORS.velocityArrowColor;
+      const color = vectorInfo.color;
       this.velocityArrowGraphics = makeArrow({
         scene: this,
         start,

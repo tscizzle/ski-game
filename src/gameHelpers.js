@@ -29,15 +29,19 @@ export const angleFromUp = (x, y) => {
 };
 
 export const makeArrow = ({ scene, start, end, color }) => {
-  const graphics = scene.add.graphics();
-  graphics.setDefaultStyles({
-    lineStyle: { width: 3, color },
-    fillStyle: { color },
-  });
-  const shaft = new Phaser.Geom.Line(start.x, start.y, end.x, end.y);
-  graphics.strokeLineShape(shaft);
+  // compute shaft and head oriented straight up
+  const arrowLength = Math.sqrt(
+    (end.x - start.x) ** 2 + (end.y - start.y) ** 2
+  );
+  const preRotatedEnd = { x: start.x, y: start.y - arrowLength };
   const headSideLength = 12;
   const headAltitudeLength = headSideLength * Math.sin(Math.PI / 3);
+  const shaft = new Phaser.Geom.Line(
+    start.x,
+    start.y,
+    preRotatedEnd.x,
+    preRotatedEnd.y + headAltitudeLength // the head covers the end of the shaft
+  );
   const head = new Phaser.Geom.Triangle(
     end.x,
     end.y,
@@ -46,10 +50,19 @@ export const makeArrow = ({ scene, start, end, color }) => {
     end.x + headSideLength / 2,
     end.y + headAltitudeLength
   );
+  // rotate the shaft and head
   const directionX = end.x - start.x;
   const directionY = end.y - start.y;
-  const headRotation = angleFromUp(directionX, directionY);
-  Phaser.Geom.Triangle.RotateAroundPoint(head, end, headRotation);
+  const rotation = angleFromUp(directionX, directionY);
+  Phaser.Geom.Triangle.RotateAroundPoint(head, end, rotation);
+  Phaser.Geom.Line.RotateAroundPoint(shaft, start, rotation);
+  // stroke the shaft and head
+  const graphics = scene.add.graphics();
+  graphics.setDefaultStyles({
+    lineStyle: { width: 3, color },
+    fillStyle: { color },
+  });
   graphics.fillTriangleShape(head);
+  graphics.strokeLineShape(shaft);
   return graphics;
 };
