@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "https://tscizzle.github.io/ski-game/precache-manifest.2234a1ee405efd887e15fe49ecb4f80f.js"
+  "https://tscizzle.github.io/ski-game/precache-manifest.b93fea33c146f1eaa653845a9fc39c1c.js"
 );
 
 workbox.clientsClaim();
