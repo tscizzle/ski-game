@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
 
 import { publicURL } from 'gameHelpers';
-import { GAME_WIDTH, GAME_HEIGHT, GAME_PADDING } from 'gameConstants';
 
 class LogoScene extends Phaser.Scene {
   constructor() {
