@@ -52,6 +52,14 @@ class SkiTiltDisplay extends Phaser.Scene {
       this.rightSki,
     ]);
     this.skis.setScale(0.23);
+
+    const titleText = this.add.text(
+      displayCenterX + displayWidth / 2,
+      displayCenterY - displayHeight / 2 - 5,
+      'Tilt (view from behind skis)',
+      { color: '#555555', fontSize: '16px' }
+    );
+    titleText.setOrigin(1, 1);
   }
 
   update() {
