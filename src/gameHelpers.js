@@ -4,8 +4,13 @@ export const publicURL = path => {
   return `${process.env.PUBLIC_URL}${path}`;
 };
 
+export const mapValBetween = (min, max, val) => {
+  /* Function to linearly map val=0 to min and val=1 to max */
+  return (max - min) * val + min;
+};
+
 export const mapInfToOne = (n, stretch = 0.999) => {
-  /* Function to map 0 to 0 and infinity to 1
+  /* Function to map n=0 to 0 and n=infinity to 1
   > stretch should be between 0 and 1 and the higher it is, the slower the
   function grows to 1
   */
@@ -23,15 +28,15 @@ export const angleFromUp = (x, y) => {
   return Math.atan2(x, -y);
 };
 
-export const makeArrow = (start, end, scene) => {
+export const makeArrow = ({ scene, start, end, color }) => {
   const graphics = scene.add.graphics();
   graphics.setDefaultStyles({
-    lineStyle: { width: 2, color: 0x333333 },
-    fillStyle: { color: 0x333333 },
+    lineStyle: { width: 3, color },
+    fillStyle: { color },
   });
   const shaft = new Phaser.Geom.Line(start.x, start.y, end.x, end.y);
   graphics.strokeLineShape(shaft);
-  const headSideLength = 10;
+  const headSideLength = 12;
   const headAltitudeLength = headSideLength * Math.sin(Math.PI / 3);
   const head = new Phaser.Geom.Triangle(
     end.x,

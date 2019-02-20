@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import Phaser from 'phaser';
 
-import { GAME_WIDTH, GAME_HEIGHT } from 'gameConstants';
+import { GAME_WIDTH, GAME_HEIGHT, GAME_PADDING } from 'gameConstants';
 
 class ResetButton extends Phaser.Scene {
   constructor() {
@@ -12,7 +12,7 @@ class ResetButton extends Phaser.Scene {
     const displayWidth = 320;
     const displayHeight = 160;
     const displayCenterX = GAME_WIDTH / 2;
-    const displayCenterY = GAME_HEIGHT - 45 - displayHeight / 2;
+    const displayCenterY = GAME_HEIGHT - GAME_PADDING - displayHeight / 2;
 
     const graphics = this.add.graphics();
     graphics.setDefaultStyles({

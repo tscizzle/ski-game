@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 
 import { publicURL } from 'gameHelpers';
-import { GAME_WIDTH, GAME_HEIGHT } from 'gameConstants';
+import { GAME_WIDTH, GAME_HEIGHT, GAME_PADDING } from 'gameConstants';
 
 class SkiTiltDisplay extends Phaser.Scene {
   constructor() {
@@ -24,21 +24,21 @@ class SkiTiltDisplay extends Phaser.Scene {
   create() {
     const displayWidth = 240;
     const displayHeight = 110;
-    const displayCenterX = GAME_WIDTH - 45 - displayWidth / 2;
-    const displayCenterY = GAME_HEIGHT - 45 - displayHeight / 2;
+    const displayCenterX = GAME_WIDTH - GAME_PADDING - displayWidth / 2;
+    const displayCenterY = GAME_HEIGHT - GAME_PADDING - displayHeight / 2;
 
     const graphics = this.add.graphics();
     graphics.setDefaultStyles({
-      lineStyle: { width: 7, color: 0x777777 },
+      lineStyle: { width: 3, color: 0x777777 },
       fillStyle: { color: 0xdddddd },
     });
-    graphics.strokeRect(
+    graphics.fillRect(
       displayCenterX - displayWidth / 2,
       displayCenterY - displayHeight / 2,
       displayWidth,
       displayHeight
     );
-    graphics.fillRect(
+    graphics.strokeRect(
       displayCenterX - displayWidth / 2,
       displayCenterY - displayHeight / 2,
       displayWidth,

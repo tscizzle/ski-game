@@ -3,11 +3,12 @@ import Phaser from 'phaser';
 
 import {
   publicURL,
+  mapValBetween,
   mapInfToOne,
   smallestAngleDifference,
   makeArrow,
 } from 'gameHelpers';
-import { GAME_WIDTH, GAME_HEIGHT } from 'gameConstants';
+import { GAME_WIDTH, GAME_HEIGHT, VECTOR_COLORS } from 'gameConstants';
 
 class MountainSlope extends Phaser.Scene {
   constructor() {
@@ -89,19 +90,18 @@ class MountainSlope extends Phaser.Scene {
       left: Phaser.Input.Keyboard.KeyCodes.A,
       right: Phaser.Input.Keyboard.KeyCodes.D,
     });
-
-    // this.scene.pause();
   }
 
   update() {
     this.drawReferenceObjects();
 
     if (!this.isCrashed) {
-      this.drawVelocityArrow();
-      this.drawSkisFacingArrow();
       this.controlRotation();
       this.controlTilt();
+      this.storeSkiPlayerValues();
     }
+    this.drawRotationArrow();
+    this.drawVelocityArrow();
 
     // ACCELERATION DUE TO GRAVITY
     let accelerationDueToGravity = { x: 0, y: 0 };
@@ -202,25 +202,36 @@ class MountainSlope extends Phaser.Scene {
       const ceilingScrapeStrength = 1000;
       const slowestEmitterFrequency = 50;
       const fastestEmitterFrequency = 0;
-      const maxEmitterScale = 0.25;
+      const maxEmitterScale = 0.12;
       const minEmitterScale = 0.05;
+      const maxEmitterQuantity = 10;
+      const minEmitterQuantity = 5;
       let newEmitterFrequency;
       let newEmitterScale;
+      let newEmitterQuantity;
       if (roundedScrapeStrength >= ceilingScrapeStrength) {
         newEmitterFrequency = fastestEmitterFrequency;
         newEmitterScale = maxEmitterScale;
+        newEmitterQuantity = maxEmitterQuantity;
       } else {
         newEmitterFrequency =
           slowestEmitterFrequency *
           (1 - roundedScrapeStrength / ceilingScrapeStrength);
-        newEmitterScale =
-          (maxEmitterScale - minEmitterScale) *
-            (roundedScrapeStrength / ceilingScrapeStrength) +
-          minEmitterScale;
+        newEmitterScale = mapValBetween(
+          minEmitterScale,
+          maxEmitterScale,
+          roundedScrapeStrength / ceilingScrapeStrength
+        );
+        newEmitterQuantity = mapValBetween(
+          minEmitterQuantity,
+          maxEmitterQuantity,
+          roundedScrapeStrength / ceilingScrapeStrength
+        );
       }
       if (newEmitterFrequency !== this.edgeSnowEmitter.frequency) {
         this.edgeSnowEmitter.setFrequency(newEmitterFrequency);
         this.edgeSnowEmitter.setScale({ start: newEmitterScale, end: 0 });
+        this.edgeSnowEmitter.setQuantity(newEmitterQuantity);
       }
       // leave a trail in the snow
       if (this.previousBackCorner) {
@@ -324,38 +335,74 @@ class MountainSlope extends Phaser.Scene {
     this.previousTiltDirection = tiltDirection;
   }
 
-  drawVelocityArrow() {
-    const maxArrowLength = 250;
-    const mappedSpeed = mapInfToOne(this.skiPlayer.body.speed);
-    const arrowLength = maxArrowLength * mappedSpeed;
-    const arrowLengthX =
-      (this.skiPlayer.body.velocity.x / this.skiPlayer.body.speed) *
-      arrowLength;
-    const arrowLengthY =
-      (this.skiPlayer.body.velocity.y / this.skiPlayer.body.speed) *
-      arrowLength;
-    const start = { x: this.skiPlayer.x, y: this.skiPlayer.y };
-    const end = {
-      x: start.x + arrowLengthX,
-      y: start.y + arrowLengthY,
+  storeSkiPlayerValues() {
+    this.storedSkiPlayerPosition = { x: this.skiPlayer.x, y: this.skiPlayer.y };
+    this.storedSkiPlayerRotation = this.skiPlayer.rotation;
+    this.storedSkiPlayerVelocity = {
+      x: this.skiPlayer.body.velocity.x,
+      y: this.skiPlayer.body.velocity.y,
     };
-    if (this.velocityArrowGraphics) {
-      this.velocityArrowGraphics.destroy();
-    }
-    this.velocityArrowGraphics = makeArrow(start, end, this);
+    this.storedSkiPlayerSpeed = this.skiPlayer.body.speed;
   }
 
-  drawSkisFacingArrow() {
-    const arrowLength = 120;
-    const start = { x: this.skiPlayer.x, y: this.skiPlayer.y };
-    const end = {
-      x: start.x + Math.sin(this.skiPlayer.rotation) * arrowLength,
-      y: start.y - Math.cos(this.skiPlayer.rotation) * arrowLength,
-    };
+  drawRotationArrow() {
     if (this.skisFacingArrowGraphics) {
       this.skisFacingArrowGraphics.destroy();
     }
-    this.skisFacingArrowGraphics = makeArrow(start, end, this);
+
+    const legendScene = this.scene.get('VectorLegend');
+    if (legendScene.vectorInfos.rotation.on) {
+      const arrowLength = 120;
+      const start = {
+        x: this.storedSkiPlayerPosition.x,
+        y: this.storedSkiPlayerPosition.y,
+      };
+      const end = {
+        x: start.x + Math.sin(this.storedSkiPlayerRotation) * arrowLength,
+        y: start.y - Math.cos(this.storedSkiPlayerRotation) * arrowLength,
+      };
+      const color = VECTOR_COLORS.rotationArrowColor;
+      this.skisFacingArrowGraphics = makeArrow({
+        scene: this,
+        start,
+        end,
+        color,
+      });
+    }
+  }
+
+  drawVelocityArrow() {
+    if (this.velocityArrowGraphics) {
+      this.velocityArrowGraphics.destroy();
+    }
+
+    const legendScene = this.scene.get('VectorLegend');
+    if (legendScene.vectorInfos.velocity.on) {
+      const maxArrowLength = 250;
+      const mappedSpeed = mapInfToOne(this.storedSkiPlayerSpeed);
+      const arrowLength = maxArrowLength * mappedSpeed;
+      const arrowLengthX =
+        (this.storedSkiPlayerVelocity.x / this.storedSkiPlayerSpeed) *
+        arrowLength;
+      const arrowLengthY =
+        (this.storedSkiPlayerVelocity.y / this.storedSkiPlayerSpeed) *
+        arrowLength;
+      const start = {
+        x: this.storedSkiPlayerPosition.x,
+        y: this.storedSkiPlayerPosition.y,
+      };
+      const end = {
+        x: start.x + arrowLengthX,
+        y: start.y + arrowLengthY,
+      };
+      const color = VECTOR_COLORS.velocityArrowColor;
+      this.velocityArrowGraphics = makeArrow({
+        scene: this,
+        start,
+        end,
+        color,
+      });
+    }
   }
 
   drawReferenceObjects() {
