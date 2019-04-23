@@ -20,7 +20,7 @@ class MountainSlope extends Phaser.Scene {
   preload() {
     this.load.image(
       'refMarkers',
-      publicURL('/gameAssets/images/racingArrows.png')
+      publicURL('/gameAssets/images/referenceMarker.png')
     );
     this.load.image('skiBody', publicURL('/gameAssets/images/skiBody.png'));
     this.load.image('leftSki', publicURL('/gameAssets/images/leftSki.png'));
@@ -57,7 +57,7 @@ class MountainSlope extends Phaser.Scene {
       this.add.sprite(this.refDistance, 0, 'refMarkers'),
       this.add.sprite(this.refDistance, this.refDistance, 'refMarkers'),
     ];
-    _.each(this.refMarkers, marker => marker.setScale(0.75));
+    _.each(this.refMarkers, marker => marker.setScale(0.13));
     this.skiBody = this.add.sprite(0, 0, 'skiBody');
     this.leftSki = this.add.sprite(-40, 0, 'leftSki');
     this.rightSki = this.add.sprite(40, 0, 'rightSki');
