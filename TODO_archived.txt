@@ -1,0 +1,33 @@
+TODO
+====
+
+Simulator Features
+- "show all" and "hide all" buttons for vectors
+- put magnitudes at the tips of arrows
+- arrow for acceleration due to gravity
+- arrow for acceleration due to edging
+- arrow for overall acceleration
+- modifiable snow conditions, like powder vs. ice
+- make the scale / numbers realistic
+
+Carving Without Scraping
+- as per Ryan's pointer, you can turn by putting pressure and the ski curve turns you in a nice arc with no scrape, since the skis make the arc of a giant circle (whose radius will be relevant here) so you don't go exactly straight
+  - https://www.real-world-physics-problems.com/physics-of-skiing.html
+
+Slalom Race
+- flags for markers instead of dots
+- start line
+- finish line
+- side boundaries (forest of trees?)
+    - detect when you hit trees
+- detect when you go on the wrong side of the flag
+- let the slope turn direction
+
+Misc
+- replace dot markers with nicer-looking tree images and terrain
+- start button
+- pause and resume button
+- display controls and explanations (toggle show and hide)
+- zoomed out playback of run
+- snow texture that repeats and scans past underfoot
+- leap motion API
